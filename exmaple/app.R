@@ -8,46 +8,58 @@
 #
 
 library(shiny)
-
-# Define UI for application that draws a histogram
+Regrex1 <- read.csv("regrex1.csv")
 ui <- fluidPage(
+  titlePanel("Regression Model (Dataset: Regrex1)"),
     
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
     
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-        
-        # Show a plot of the generated distribution
-        mainPanel(
-            tableOutput("contents"),
-            plotOutput("distPlot")
-            
-        )
+    mainPanel(
+      
+      tabsetPanel(type = "tabs",
+                  tabPanel("Scatterplot", plotOutput("scatterplot")), # Plot
+                  tabPanel("Model Summary", verbatimTextOutput("summary")), # Regression output
+                  tabPanel("Data", DT::dataTableOutput('tbl')) # Data as datatable
+                  
+      )
     )
+  )
 
-)
 
-# Define server logic required to draw a histogram
+
+# SERVER
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    })
+  
+  # Regression output
+  #model = lm(formula = y ~ x,   data = dataset)
+  #summary(model)
+  output$summary <- renderPrint({
+    fit <- lm(Regrex1$y ~ Regrex1$x)
+    summary(fit)
+  })
+  
+  # Data output
+  output$tbl = DT::renderDataTable({
+    DT::datatable(Regrex1, options = list(lengthChange = FALSE))
+  })
+  
+  
+  # Scatterplot output
+  #ggplot() +
+   # geom_point(aes(x = dataset$x, y = dataset$y),
+    #           colour = 'red') +
+    #geom_line(aes(x = dataset$x, y = predict(model, newdata = dataset)),
+    #          colour = 'blue') +
+   # ggtitle('y vs x') +
+    # xlab('x') +
+    # ylab('y') 
+  
+  
+  output$scatterplot <- renderPlot({
+    plot(Regrex1$x, Regrex1$y,  main="Scatterplot",
+         xlab="Regrex1$x", ylab="Regrex1$y", pch=19)
+    abline(lm(Regrex1$y ~ Regrex1$x), col="red")
+  }, height=400)
+  
 }
 
-# Run the application 
 shinyApp(ui = ui, server = server)
